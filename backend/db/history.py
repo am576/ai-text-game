@@ -33,9 +33,9 @@ class History:
             "messages": []
         }
 
-        # Populate the messages list in the JSON structure
         for message in messages:
             json_data["messages"].append({
+                "id": message.id,
                 "role": message.role,
                 "content": message.content
         })
