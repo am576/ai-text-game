@@ -35,6 +35,8 @@ def save_response():
 def load_history():
     return history.getHistory()
 
+
+
 if __name__ == "__main__":
     app.run(debug = True)
     

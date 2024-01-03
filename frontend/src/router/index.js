@@ -1,12 +1,18 @@
 import { createRouter, createWebHistory } from "vue-router";
 import MainChat from "../components/MainChat"
 import HomeView from "../components/HomeView"
+import AdventureCreator from "../components/AdventureCreator"
 
 const routes = [
   {
     path: "/adventure",
     name: "adventure",
     component: MainChat
+  },
+  {
+    path: "/create_adventure",
+    name: "create_adventure",
+    component: AdventureCreator
   },
   {
     path: "/",

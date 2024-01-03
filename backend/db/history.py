@@ -41,6 +41,20 @@ class History:
         })
         return json_data
 
+    class Adventure(Base):
+            __tablename__ = 'adventures'
+
+            id = Column(Integer, primary_key=True)
+            type = Column(Text)
+            name = Column(Text)
+            description = Column(Text)
+
+    def addAdventure(self, type, name, description):
+        new_adventure = self.Adventure(type=type, name=name, description=description)
+        self.session.add(new_adventure)
+        self.session.commit()
+        self.session.close()
+
 
     
         
