@@ -48,9 +48,23 @@ class History:
             type = Column(Text)
             name = Column(Text)
             description = Column(Text)
+            preview_url = Column(Text)
+            character_description = Column(Text)
+            avatar_description = Column(Text)
+            avatar = Column(Text)
 
-    def addAdventure(self, type, name, description):
-        new_adventure = self.Adventure(type=type, name=name, description=description)
+    def addAdventure(self, type, name, description, preview_url, character_description, avatar_description, avatar):
+        if len(type) > 64:
+            raise ValueError("Type exceeds maximum length of 64 characters")
+        if len(name) > 64:
+            raise ValueError("Name exceeds maximum length of 64 characters")
+        if len(description) > 1024:
+            raise ValueError("Description exceeds maximum length of 1024 characters")
+        if len(character_description) > 1024:
+            raise ValueError("Character description exceeds maximum length of 1024 characters")
+        if len(avatar_description) > 120:
+            raise ValueError("Avatar description exceeds maximum length of 120 characters")
+        new_adventure = self.Adventure(type=type, name=name, description=description, preview_url=preview_url, character_description=character_description, avatar_description=avatar_description, avatar=avatar)
         self.session.add(new_adventure)
         self.session.commit()
         self.session.close()
