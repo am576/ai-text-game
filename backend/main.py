@@ -1,4 +1,4 @@
-from flask import Flask, Response, request, send_file
+from flask import Flask, Response, request, send_file, jsonify
 from flask_cors import CORS, cross_origin
 from db.history import History
 from comfy.generator import Generator
@@ -60,6 +60,10 @@ def save_adventure():
     history.addAdventure(name, description, preview, character_description, avatar_description, avatar)
     
     return "Working"
+
+@app.route('/get_adventures', methods=['GET'])
+def get_adventures():
+    return jsonify(history.getAdventures())
 
 if __name__ == "__main__":
     app.run(debug = True)

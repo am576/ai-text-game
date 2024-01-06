@@ -50,10 +50,8 @@ class History:
             type = Column(Text)
             name = Column(Text)
             description = Column(Text)
-            preview = Column(Text)
             character_description = Column(Text)
             avatar_description = Column(Text)
-            avatar = Column(Text)
 
     def addAdventure(self, name, description, world_preview, character_description, avatar_description, avatar_preview):
         # if len(type) > 64:
@@ -67,14 +65,10 @@ class History:
         if len(avatar_description) > 120:
             raise ValueError("Avatar description exceeds maximum length of 120 characters")
         
-        new_adventure = self.Adventure(type='type', name=name, description=description, preview=world_preview, character_description=character_description, avatar_description=avatar_description, avatar=avatar_preview)
+        new_adventure = self.Adventure(type='type', name=name, description=description, character_description=character_description, avatar_description=avatar_description)
         self.session.add(new_adventure)
         self.session.commit()
-        preview, avatar = self.saveAdventurePreviews(new_adventure.id, world_preview, avatar_preview)
-        new_adventure.preview = preview
-        new_adventure.avatar = avatar
-        self.session.add(new_adventure)
-        self.session.commit()
+        self.saveAdventurePreviews(new_adventure.id, world_preview, avatar_preview)
         self.session.close()
         
         
@@ -82,16 +76,30 @@ class History:
         adventure_path = f'../frontend/src/assets/adventures/{adventure_id}'
         os.makedirs(adventure_path, exist_ok=True)
 
-        preview_file_name = os.path.basename(world_preview)
-        avatar_file_name = os.path.basename(avatar_preview)
-
-        preview_destination = os.path.join(adventure_path, 'preview.png')  # Example destination name for the preview file
-        avatar_destination = os.path.join(adventure_path, 'avatar.png')  # Example destination name for the avatar file
+        preview_destination = os.path.join(adventure_path, 'preview.png')
+        avatar_destination = os.path.join(adventure_path, 'avatar.png')
 
         shutil.copy(world_preview, preview_destination)
         shutil.copy(avatar_preview, avatar_destination)
 
-        return preview_destination, avatar_destination
+        
+
+    def getAdventures(self):
+        adventures = self.session.query(self.Adventure).all()
+        adventures_json = []
+
+        for adventure in adventures:
+            adventure_dict = {
+                'id': adventure.id,
+                'name': adventure.name,
+                'description': adventure.description,
+                'character_description': adventure.character_description,
+                'avatar_description': adventure.avatar_description,
+            }
+            adventures_json.append(adventure_dict)
+
+        return adventures_json
+
 
     def close(self):
          self.session.close()
