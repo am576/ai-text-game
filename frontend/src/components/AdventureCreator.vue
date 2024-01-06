@@ -1,54 +1,111 @@
 <template>
-    <div class="homepage bg-slate-800 h-screen flex flex-col items-center">
-        <h1 class="text-5xl py-10 font-bold text-slate-200 text-center">Create your adventure</h1>
-        <div>
-            <label for="name">Name:</label>
-            <input type="text" id="name" v-model="adventureName">
-            <span v-if="errors.name" class="error">{{ errors.name }}</span>
+    <div class="homepage bg-slate-800 h-screen flex justify-center">
+        <div class="w-1/3 flex justify-center">
+            <div class="w-full flex flex-col justify-start items-center p-10" v-show="worldPreview">
+                <h3 class="text-3xl  font-bold text-slate-200 text-center">World preview</h3>
+                <img :src="worldPreview" style="object-fit: contain;" class="self-start"/>
+            </div>
         </div>
-        <div>
-            <label for="description">Description:</label>
-            <textarea id="description" v-model="adventureDescription" @input="handleInput"></textarea>
-            <span v-if="errors.description" class="error">{{ errors.description }}</span>
+        <div class="w-1/3 flex flex-col items-center gap-8">
+            <h1 class="text-5xl py-10 font-bold text-slate-200 text-center">Create your adventure</h1>
+            <div class="w-full">
+                <input type="text" id="name" v-model="adventure.name" class="user-input" placeholder="Give your adventure a name">
+                <span v-if="errors.name" class="error">{{ errors.name }}</span>
+            </div>
+            <div class="w-full">
+                <label for="description" class="text-3xl font-bold text-slate-200">Describe the world</label>
+                <Popper placement="right" class="dark">
+                    <template #content>
+                      <div>Give a short description of your world</div>
+                    </template>
+                    <textarea id="description" v-model="adventure.worldDescription" @input="generateWorldPreview" class="user-input"></textarea>
+                </Popper>
+                <span v-if="errors.description" class="error">{{ errors.description }}</span>
+            </div>
+            
+            <div class="w-full">
+                <label for="character_description" class="text-3xl font-bold text-slate-200">Describe your character</label>
+                <Popper placement="right" class="dark">
+                    <template #content>
+                      <div>Describe your character - who are you? What are you up to? What is your story?</div>
+                    </template>
+                    <textarea id="charscter_description" v-model="adventure.characterDescription" class="user-input"></textarea>
+                </Popper>
+                <span v-if="errors.character_description" class="error">{{ errors.character_description }}</span>
+            </div>
+            <div class="w-full">
+                <label for="avatar_description" class="text-3xl font-bold text-slate-200">Describe your avatar</label>
+                <Popper placement="right" class="dark">
+                    <template #content>
+                      <div>This is the avatar that will be shown in your character screen.</div>
+                    </template>
+                    <input type="text" id="avatar_description" v-model="adventure.avatarDescription" @input="generateAvatar" class="user-input">
+                </Popper>
+                <span v-if="errors.avatar_description" class="error">{{ errors.avatar_description }}</span>
+            </div>
+            <div class="flex gap-3 items-center">
+                <button @click.prevent="submitAdventure" :disabled="isSaving" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                {{ btnCaption }}
+            </button>
+            <clip-loader :loading="isSaving" :color="spinner.color" :size="spinner.size"></clip-loader>
+            </div>
+            
         </div>
-        <button @click.prevent="submitAdventure">Submit</button>
-        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" @click="testComfy">
-            Test
-        </button>
-        <img :src="imageUrl">
+        <div class="w-1/3 flex justify-center">
+            <div class="w-full flex flex-col justify-start p-10" v-show="avatarPreview">
+                <h3 class="text-3xl  font-bold text-slate-200 text-center">Avatar preview</h3>
+                <img :src="avatarPreview" style="object-fit: contain;" class="self-start" alt="Avatar preview" />
+            </div>
+        </div>
     </div>
   </template>
 
 <script>
     import axios from 'axios';
     import { debounce } from 'lodash';
+    import Popper from "vue3-popper";
+    import ClipLoader from 'vue-spinner/src/ClipLoader.vue'
 
     export default {
         name: "AdventureCreator",
+        components: {
+            Popper,
+            ClipLoader
+        },
         data() {
             return {
-                imageUrl : '',
-                adventureType: '',
-                adventureName: '',
-                adventureDescription: '',
+                adventure: {},
+                worldPreview: '',
+                avatarPreview: '',
                 errors: {},
+                isSaving : false,
+                spinner: {
+                    size: '50px',
+                    color: '#3b82f6',
+                }
             };
         },
         methods: {
             submitAdventure() {
+                this.isSaving = true
                 this.errors = {};
-
-                axios.post('/api/addAdventure', {
-                    type: this.adventureType,
-                    name: this.adventureName,
-                    description: this.adventureDescription
-                },{ responseType: 'arraybuffer' })
+                const formData = new FormData()
+                for (const [key, value] of Object.entries(this.adventure)) {
+                   formData.append(key, value);
+                }
+                const url = process.env.VUE_APP_BACKEND_URL;
+                axios.post(`${url}/save_adventure`, formData,
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+                )
                 .then(response => {
-                    // Handle successful response
                     console.log(response.data);
+                    this.isSaving = false
                 })
                 .catch(error => {
-                    // Handle error response
                     if (error.response) {
                         this.errors = error.response.data;
                     } else if (error.request) {
@@ -58,10 +115,10 @@
                     }
                 });
             },
-            handleInput: debounce(function() {
+            generateAvatar: debounce(function() {
                 const url = process.env.VUE_APP_BACKEND_URL;
                 axios
-                axios.post(`${url}/generate_preview`, {prompt: this.adventureDescription},
+                axios.post(`${url}/avatar_preview`, {prompt: this.adventure.avatarDescription},
                 {
                     headers: {
                     'Content-Type': 'application/json'
@@ -69,40 +126,29 @@
                 }, )
                     .then(response => {
                     const blob = new Blob([response.data], { type: 'image/png' });
-                    this.imageUrl = URL.createObjectURL(blob);
+                    this.avatarPreview = URL.createObjectURL(blob);
                     })
                     .catch(error => {
                     console.log('Error:', error);
                     });
-                }, 500),
-            testComfy() {
-                const url = process.env.VUE_APP_BACKEND_URL
-                axios.post(`${url}/generate_preview`, {prompt: "test prompt"},
+            }, 500),
+            generateWorldPreview: debounce(function() {
+                const url = process.env.VUE_APP_BACKEND_URL;
+                axios
+                axios.post(`${url}/world_preview`, {prompt: this.adventure.worldDescription},
                 {
                     headers: {
                     'Content-Type': 'application/json'
                     },responseType: 'blob'
                 }, )
-                .then(response => {
+                    .then(response => {
                     const blob = new Blob([response.data], { type: 'image/png' });
-                    this.imageUrl = URL.createObjectURL(blob);
-                    console.log(this.imageUrl)
-                })
-                .catch(error => {
-                    if (error.response) {
-                        console.log(error.response.data);
-                        console.log(error.response.status);
-                        console.log(error.response.headers);
-                    } 
-                    else if (error.request) {
-                        console.log(error.request);
-                    } 
-                    else {
-                    // Something happened in setting up the request that triggered an Error
-                        console.log('Error', error.message);
-                    }
-                });
-            },
+                    this.worldPreview = URL.createObjectURL(blob);
+                    })
+                    .catch(error => {
+                    console.log('Error:', error);
+                    });
+            }, 500),
         },
         computed: {
             previewUrl() {
@@ -111,6 +157,9 @@
                 } else {
                     return '';
                 }
+            },
+            btnCaption() {
+                return this.isSaving ? "Saving..." : "Create adventure";
             }
         }
     }
@@ -118,5 +167,24 @@
 </script>
 
 <style lang="scss" scoped>
+    .inline-block {
+        width: 100% !important;
+        margin: 0 !important;
+        border: 0 !important;
+    }
+    img {
+        width: 512px;
+        height: 512px;
+    }
+    .dark {
+        --popper-theme-background-color: #333333;
+        --popper-theme-background-color-hover: #333333;
+        --popper-theme-text-color: white;
+        --popper-theme-border-width: 0px;
+        --popper-theme-border-radius: 6px;
+        --popper-theme-padding: 32px;
+        --popper-theme-box-shadow: 0 6px 30px -6px rgba(0, 0, 0, 0.25);
+    }
+    
 
 </style>

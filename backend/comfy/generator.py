@@ -8,26 +8,39 @@ import time
 from PIL import Image
 import io
 class Generator:
-    latest_prompt = ""
-    latest_seed = 0
-    def generateAdventurePreview(self, prompt):
-        workflow = self.loadWorkflow("turbo")
-        workflow["33"]["inputs"]["text_a"] = prompt
-        prefix = self.random_prefix(32)
-        seed = self.random_seed()
-        workflow["37"]["inputs"]["filename_prefix"] = prefix 
-        workflow["13"]["inputs"]["noise_seed"] = seed
-        self.queue_prompt(workflow)
-        preview_file = self.wait_for_file(prefix)
-        if self.is_image_saved(preview_file):
-            image = self.get_image(preview_file)
-            os.remove(preview_file)
-            self.latest_prompt = prompt
-            self.latest_seed = seed
-            
-            return image
+    prompt = ""
+    seed = 0
+    workflow = None
+    world_preview_path = None
+    avatar_preview_path = None
+
+    def __init__(self):
+        self.initWorkflow()
+
+    def initWorkflow(self):
+        self.workflow = self.loadWorkflow("turbo")
+
+    def setGenerationParameters(self, prompt):
+        self.prompt = prompt
+        self.workflow["6"]["inputs"]["text"] = self.prompt
+        self.prefix = self.random_prefix(32)
+        self.seed = self.random_seed()
+        self.workflow["27"]["inputs"]["filename_prefix"] = self.prefix 
+        self.workflow["13"]["inputs"]["noise_seed"] = self.seed
+
+    def generateWorldPreview(self, prompt):
+        self.setGenerationParameters(prompt)
+        self.queue_prompt(self.workflow)
+        worldImage, self.world_preview_path = self.getSavedFile()
+
+        return worldImage
+    
+    def generateAvatarPreview(self, prompt):
+        self.setGenerationParameters(prompt)
+        self.queue_prompt(self.workflow)
+        avatarImage, self.avatar_preview_path = self.getSavedFile()
         
-        return None
+        return avatarImage
 
     def loadWorkflow(self, name):
         file_path = f"comfy/{name}_workflow.json"
@@ -43,6 +56,16 @@ class Generator:
         data = json.dumps(p).encode('utf-8')
         req =  request.Request("http://127.0.0.1:8188/prompt", data=data)
         request.urlopen(req)
+
+    def getSavedFile(self):
+        preview_file_path = self.wait_for_file(self.prefix)
+        if self.is_image_saved(preview_file_path):
+            image = self.get_image(preview_file_path)
+            # os.remove(preview_file)
+            
+            return image, preview_file_path
+        
+        return None
 
     def random_prefix(self, length):
         characters = string.ascii_letters + string.digits
@@ -73,13 +96,6 @@ class Generator:
                 raise FileNotFoundError(f"File '{path}' not found after waiting for 5 seconds.")
             time.sleep(0.1)
 
-    def copy_file_to_frontend(self, file_path):
-        file_path = os.path.join('./comfyui/output', file_path)
-        destination_path = "../frontend/src/assets/previews/" + file_path.split("/")[-1]
-        shutil.copy2(file_path, destination_path)
-        
-        return destination_path
-    
     def get_image(self, file_name):
         pil_image = Image.open(file_name)
         img_byte_stream = io.BytesIO()
@@ -90,13 +106,12 @@ class Generator:
     
     def is_image_saved(self, image_path):
         initial_size = os.path.getsize(image_path)
-        # Wait for the image to be saved for a certain period of time
         timeout = time.time() + 3
         while True:
             final_size = os.path.getsize(image_path)
             if final_size == initial_size:
                 time.sleep(0.5)
-                return True  # Image is saved successfully
+                return True
             if time.time() > timeout:
-                return False  # Image is still being saved or truncated
+                return False
             time.sleep(0.1)

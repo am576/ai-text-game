@@ -9,10 +9,7 @@
   },
   "6": {
     "inputs": {
-      "text": [
-        "33",
-        0
-      ],
+      "text": "a zombie",
       "clip": [
         "20",
         1
@@ -46,7 +43,7 @@
   "13": {
     "inputs": {
       "add_noise": true,
-      "noise_seed": 912538216799627,
+      "noise_seed": 81065979978160,
       "cfg": 1,
       "model": [
         "20",
@@ -89,7 +86,7 @@
   },
   "22": {
     "inputs": {
-      "steps": 4,
+      "steps": 3,
       "model": [
         "20",
         0
@@ -97,17 +94,7 @@
     },
     "class_type": "SDTurboScheduler"
   },
-  "33": {
-    "inputs": {
-      "action": "replace",
-      "tidy_tags": "yes",
-      "text_a": "beautiful woman, portrait, beach",
-      "text_b": "",
-      "text_c": ""
-    },
-    "class_type": "StringFunction|pysssss"
-  },
-  "37": {
+  "27": {
     "inputs": {
       "filename_prefix": "adventure",
       "images": [

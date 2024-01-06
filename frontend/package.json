@@ -12,7 +12,8 @@
     "core-js": "^3.8.3",
     "vue": "^3.2.36",
     "vue-router": "^4.0.3",
-    "vue-spinner": "^1.0.4"
+    "vue-spinner": "^1.0.4",
+    "vue3-popper": "^1.5.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",

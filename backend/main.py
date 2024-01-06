@@ -1,7 +1,5 @@
 from flask import Flask, Response, request, send_file
 from flask_cors import CORS, cross_origin
-import requests
-import json
 from db.history import History
 from comfy.generator import Generator
 
@@ -34,19 +32,33 @@ def save_response():
 def load_history():
     return history.getHistory()
 
-@app.route('/generate_preview', methods=['POST'])
-def generate_preview():
+@app.route('/world_preview', methods=['POST'])
+def world_preview():
     prompt = request.json.get('prompt')
-    preview =  generator.generateAdventurePreview(prompt)
+    world_prompt = "3d fantasy digital illustration of " + prompt
+    preview =  generator.generateWorldPreview(world_prompt)
+
+    return  send_file(preview, mimetype='image/png')
+
+@app.route('/avatar_preview', methods=['POST'])
+def avatar_preview():
+    prompt = request.json.get('prompt')
+    avatar_prompt = "3d fantasy digital portrait of character " + prompt
+    preview =  generator.generateAvatarPreview(avatar_prompt)
 
     return  send_file(preview, mimetype='image/png')
 
 @app.route('/save_adventure', methods=['POST'])
 def save_adventure():
-    type = request.json.get('type')
+    # type = request.json.get('type')
     name = request.json.get('name')
-    description = request.json.get('description')
-    history.addAdventure(type, name, description)
+    description = request.json.get('worldDescription')
+    character_description = request.json.get('characterDescription')
+    avatar_description = request.json.get('avatarDescription')
+    preview = generator.world_preview_path
+    avatar = generator.avatar_preview_path
+    history.addAdventure(name, description, preview, character_description, avatar_description, avatar)
+    
     return "Working"
 
 if __name__ == "__main__":
