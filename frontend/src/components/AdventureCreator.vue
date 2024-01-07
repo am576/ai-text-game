@@ -28,17 +28,43 @@
                 </Popper>
                 <span v-if="errors.description" class="error">{{ errors.description }}</span>
             </div>
-            <div class="w-full">
-                <label for="character_description" class="text-3xl font-bold text-slate-200">Character</label>
-                <Popper placement="right" class="dark">
-                    <template #content>
-                      <div>Describe your character - who are you? What are you up to? What is your story?</div>
-                    </template>
-                    <textarea id="charscter_description" v-model="adventure.characterDescription" class="user-input"></textarea>
-                </Popper>
-                <span v-if="errors.character_description" class="error">{{ errors.character_description }}</span>
+            <div class="w-full flex flex-col gap-4">
+                <h3 class="text-3xl font-bold text-slate-200">Character</h3>
+                
+                <div>
+                    <h3 class="text-2xl font-bold text-slate-200">Age</h3>
+                    <v-btn-toggle
+                        v-model="character.age"
+                        divided
+                        color="purple-darken-4"
+                    >
+                        <v-btn v-for="(age, index) in ages" :key="index" :value="age">{{ age }}</v-btn>
+                    </v-btn-toggle>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-slate-200">Gender</h3>
+                    <v-btn-toggle
+                        v-model="character.gender"
+                        divided
+                        color="purple-darken-4"
+                    >
+                        <v-btn v-for="(gender, index) in genders" :key="index" :value="gender">{{ gender }}</v-btn>
+                    </v-btn-toggle>
+                </div>
+                <div>
+                    <label for="character_description" class="text-2xl font-bold text-slate-200">Character backstory</label>
+                    <Popper placement="right" class="dark">
+                        <template #content>
+                        <div>Describe your character - who are you? What are you up to? What is your story?</div>
+                        </template>
+                        <textarea id="charscter_description" v-model="character.description" class="user-input"></textarea>
+                    </Popper>
+                    <span v-if="errors.character_description" class="error">{{ errors.character_description }}</span>
+                    <v-btn @click="generateAvatarPreview">Create avatar</v-btn>
+                </div>
+                
             </div>
-            <div class="w-full">
+            <!-- <div class="w-full">
                 <label for="avatar_description" class="text-3xl font-bold text-slate-200">Avatar</label>
                 <Popper placement="right" class="dark">
                     <template #content>
@@ -46,15 +72,15 @@
                     </template>
                     <input type="text" id="avatar_description" v-model="adventure.avatarDescription" @input="generateAvatar" class="user-input">
                 </Popper>
+                
                 <span v-if="errors.avatar_description" class="error">{{ errors.avatar_description }}</span>
-            </div>
+            </div> -->
             <div class="flex gap-3 items-center justify-center">
                 <button @click.prevent="submitAdventure" :disabled="isSaving" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 {{ btnCaption }}
             </button>
             <clip-loader :loading="isSaving" :color="spinner.color" :size="spinner.size"></clip-loader>
             </div>
-            
         </div>
         <div class="w-1/3 flex justify-center">
             <div class="w-full flex flex-col justify-start p-10" v-show="avatarPreview">
@@ -81,6 +107,11 @@
         data() {
             return {
                 adventure: {},
+                character: {
+                    age: "18-25",
+                    gender: "Male",
+                    description: ""
+                },
                 worldPreview: '',
                 avatarPreview: '',
                 errors: {},
@@ -88,7 +119,10 @@
                 spinner: {
                     size: '50px',
                     color: '#3b82f6',
-                }
+                },
+                genders: ['Male', 'Female'],
+                ages: ['18-25', '25-35', '35-45', '45-55', '55-60', '60-70', '70+'],
+                current_message: '',
             };
         },
         methods: {
@@ -121,9 +155,9 @@
                     }
                 });
             },
-            generateAvatar: debounce(function() {
+            generateAvatar() {
+                console.log('test')
                 const url = process.env.VUE_APP_BACKEND_URL;
-                axios
                 axios.post(`${url}/avatar_preview`, {prompt: this.adventure.avatarDescription},
                 {
                     headers: {
@@ -137,7 +171,43 @@
                     .catch(error => {
                     console.log('Error:', error);
                     });
-            }, 500),
+            },
+            async generateAvatarPrompt() {
+                const prompt = `Here is a description of a character:\n"${this.character.description}. ${this.character.gender}. ${this.character.age} years old"\n
+                    Describe it with 1-2 sentences, how you would it to an artist to paint a picture of this character. It must be a close up portrait. Don't mention character's profession.`
+                const body = {
+                    model: "dolphin",
+                    prompt: prompt
+                };
+                const response = await fetch("http://127.0.0.1:11434/api/generate", {
+                    method: "POST",
+                    body: JSON.stringify(body)
+                });
+
+                const reader = response.body?.getReader();
+                if (!reader) {
+                    throw new Error("Failed to read response body");
+                }
+
+                let content = "";
+                let done = false;
+                let avatar_prompt = ""
+                while (!done) {
+                    const { done: isDone, value } = await reader.read();
+                    done = isDone;
+                    if (!done) {
+                        const rawjson = new TextDecoder().decode(value);
+                        const json = JSON.parse(rawjson);
+                        content += json.response;
+                        avatar_prompt = content
+                    }
+                }
+                this.adventure.avatarDescription = avatar_prompt
+            },
+            async generateAvatarPreview() {
+                await this.generateAvatarPrompt()
+                this.generateAvatar()
+            },
             generateWorldPreview: debounce(function() {
                 const url = process.env.VUE_APP_BACKEND_URL;
                 axios
@@ -166,6 +236,9 @@
             },
             btnCaption() {
                 return this.isSaving ? "Saving..." : "Create adventure";
+            },
+            avatarPrePrompt() {
+                return "3d sci-fi fantasy concept art, portrait of a character. " + this.character.gender + " " + this.character.age + " years old. \n"
             }
         }
     }

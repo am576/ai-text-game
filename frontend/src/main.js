@@ -8,12 +8,28 @@ import "./assets/style.css";
 import '@fortawesome/fontawesome-svg-core/styles.css'
 
 import { faAngleLeft } from '@fortawesome/free-solid-svg-icons'
+import { faMars } from '@fortawesome/free-solid-svg-icons'
 
 library.add(faAngleLeft)
+library.add(faMars)
+
+
+import 'vuetify/styles'
+import { createVuetify } from 'vuetify'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
+
+const vuetify = createVuetify({
+  components,
+  directives,
+  theme: {
+    defaultTheme: 'dark'
+  }
+})
 
 const app = createApp(App).use(router);
 
 app.component("main-chat", MainChat)
 app.component('font-awesome-icon', FontAwesomeIcon)
-
+app.use(vuetify)
 app.mount("#app")

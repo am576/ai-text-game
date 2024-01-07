@@ -100,12 +100,12 @@
 			}); */
 		},
 		async message() {
-			const adventure = this.messages
+			/* const adventure = this.messages
 				.filter(obj => obj.role === "assistant")
 				.map(obj => obj.content)
-				.join('\n');
-			const prompt = `I want you to function as a prompt generator for text-to-image prompts. For example, i give you some scene and you create a suitable prompt that can be fed to AI for generation.
-			The following is a description of text-based adventure. I want you to take the recent event and generate a prompt, describing the location and scenery where the player is. The prompt must be less than 50 characters long. Here is the adventure: \n"${adventure}"\n`
+				.join('\n'); */
+			const prompt = `Here is a description of a character:\n"${this.userInput}"\n
+Describe it with one sentence, how you would it to an artist to paint a picture of this character. It must be a close up portrait. Don't mention his profession `
 			const body = {
 				model: this.model,
 				prompt: prompt
