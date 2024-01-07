@@ -7,11 +7,10 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import "./assets/style.css";
 import '@fortawesome/fontawesome-svg-core/styles.css'
 
-import { faAngleLeft } from '@fortawesome/free-solid-svg-icons'
-import { faMars } from '@fortawesome/free-solid-svg-icons'
+import { faAngleLeft, faRotateRight } from '@fortawesome/free-solid-svg-icons'
 
 library.add(faAngleLeft)
-library.add(faMars)
+library.add(faRotateRight)
 
 
 import 'vuetify/styles'

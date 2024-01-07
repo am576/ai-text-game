@@ -9,7 +9,7 @@
         <div class="w-1/3 flex flex-col gap-8">
             <div class="flex items-center justify-start">
                 <router-link to="/" class="link">
-                    <font-awesome-icon icon="fa-solid fa-angle-left" class=" text-sky-500 hover:text-sky-700  mr-auto" size="2xl" />
+                    <font-awesome-icon icon="fa-solid fa-angle-left" class="text-sky-500 hover:text-sky-700  mr-auto" size="2xl"/>
                 </router-link>
                 <h1 class="mx-auto text-5xl py-10 font-bold text-slate-200 text-center">Create your adventure</h1>
             </div>
@@ -64,7 +64,7 @@
                 </div>
                 
             </div>
-            <!-- <div class="w-full">
+            <div class="w-full" v-show="adventure.avatarDescription">
                 <label for="avatar_description" class="text-3xl font-bold text-slate-200">Avatar</label>
                 <Popper placement="right" class="dark">
                     <template #content>
@@ -74,7 +74,7 @@
                 </Popper>
                 
                 <span v-if="errors.avatar_description" class="error">{{ errors.avatar_description }}</span>
-            </div> -->
+            </div>
             <div class="flex gap-3 items-center justify-center">
                 <button @click.prevent="submitAdventure" :disabled="isSaving" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 {{ btnCaption }}
@@ -82,10 +82,17 @@
             <clip-loader :loading="isSaving" :color="spinner.color" :size="spinner.size"></clip-loader>
             </div>
         </div>
-        <div class="w-1/3 flex justify-center">
-            <div class="w-full flex flex-col justify-start p-10" v-show="avatarPreview">
-                <h3 class="text-3xl  font-bold text-slate-200 text-center">Avatar preview</h3>
-                <img :src="avatarPreview" style="object-fit: contain;" class="self-start" alt="Avatar preview" />
+        <div class="w-1/3 flex justify-center"> 
+            <div class="w-full flex flex-col justify-start items-center p-10" v-show="avatarPreview">
+                <div class="flex items-center justify-center gap-4">
+                    <h3 class="text-3xl font-bold text-slate-200">Avatar preview</h3>
+                    <font-awesome-icon v-show="!generatingAvatar" icon="fa-solid fa-rotate-right" class="text-sky-500 hover:text-sky-700  mr-auto cursor-pointer" size="2xl" @click="generateAvatar"/>
+                </div>
+                <div :class="['avatar-preview',{ 'with-before': generatingAvatar }]">
+                    <img :src="avatarPreview" style="object-fit: contain;" class="self-start" alt="Avatar preview" />
+                    <clip-loader :loading="generatingAvatar" :color="'#ffffff'" :size="spinner.size"></clip-loader>
+                </div>
+                
             </div>
         </div>
     </div>
@@ -123,6 +130,8 @@
                 genders: ['Male', 'Female'],
                 ages: ['18-25', '25-35', '35-45', '45-55', '55-60', '60-70', '70+'],
                 current_message: '',
+                generatingAvatar: false,
+                defaultAvatar: ''
             };
         },
         methods: {
@@ -156,7 +165,7 @@
                 });
             },
             generateAvatar() {
-                console.log('test')
+                this.generatingAvatar = true;
                 const url = process.env.VUE_APP_BACKEND_URL;
                 axios.post(`${url}/avatar_preview`, {prompt: this.adventure.avatarDescription},
                 {
@@ -167,6 +176,7 @@
                     .then(response => {
                         const blob = new Blob([response.data], { type: 'image/png' });
                         this.avatarPreview = URL.createObjectURL(blob);
+                        this.generatingAvatar = false
                     })
                     .catch(error => {
                     console.log('Error:', error);
@@ -205,6 +215,8 @@
                 this.adventure.avatarDescription = avatar_prompt
             },
             async generateAvatarPreview() {
+                this.generatingAvatar = true
+                this.avatarPreview = this.defaultAvatar
                 await this.generateAvatarPrompt()
                 this.generateAvatar()
             },
@@ -238,8 +250,11 @@
                 return this.isSaving ? "Saving..." : "Create adventure";
             },
             avatarPrePrompt() {
-                return "3d sci-fi fantasy concept art, portrait of a character. " + this.character.gender + " " + this.character.age + " years old. \n"
-            }
+                return "3d sci-fi concept art, portrait of a character. " + this.character.gender + " " + this.character.age + " years old. \n"
+            },
+        },
+        created() {
+            this.defaultAvatar = new URL('/src/assets/default_avatar.png', import.meta.url).href
         }
     }
     
@@ -263,6 +278,27 @@
         --popper-theme-border-radius: 6px;
         --popper-theme-padding: 32px;
         --popper-theme-box-shadow: 0 6px 30px -6px rgba(0, 0, 0, 0.25);
+    }
+    .avatar-preview {
+        position: relative;
+        .v-spinner {
+            position: absolute;
+            left: 45%;
+            top: 45%;
+        }
+        &.with-before::before {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(30px);
+            background-color: rgba(0, 0, 0, 0.54);
+        }
+    }
+    .avatar-preview::before {
+        content: "";
+        
     }
     
 

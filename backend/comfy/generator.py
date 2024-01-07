@@ -61,7 +61,7 @@ class Generator:
         preview_file_path = self.wait_for_file(self.prefix)
         if self.is_image_saved(preview_file_path):
             image = self.get_image(preview_file_path)
-            # os.remove(preview_file)
+            os.remove(preview_file_path)
             
             return image, preview_file_path
         
