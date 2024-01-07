@@ -1,8 +1,8 @@
 <template>
   <div class="homepage bg-slate-800 h-screen flex flex-col items-center">
   <h1 class="text-5xl py-10 font-bold text-slate-200 text-center">Choose your adventure</h1>
-  <div class="adventures-list flex justify-between w-2/3 gap-8">
-    <div class="adventure w-1/3 h-full relative flex flex-col" v-for="adventure in adventures" :key="adventure.id">
+  <div class="adventures-list flex justify-between w-2/3 flex-wrap -mx-2">
+    <div class="adventure w-1/3 h-full relative flex flex-col px-4" v-for="adventure in adventures" :key="adventure.id">
 		<h3 class="text-3xl text-center absolute top-5 w-full"></h3>
 		<img :src="previewUrl(adventure.id)" style="object-fit: contain;" class="self-start">
 		<div class="adventure-info w-full flex flex-col gap-2 relative" :style="`background-image: url(${previewUrl(adventure.id)})`">
@@ -24,7 +24,6 @@
 		data() {    
 			return {
 			adventures: [],
-			backgroundImage : "https://visuals.share.voyage/cdn-cgi/imagedelivery/DPSHeCXswmvoQXsmqJ-mDA/01270720-d79e-45b0-6b5f-b25665115a00/blur30"
 		}
 		},
 		methods: {

@@ -1,30 +1,35 @@
 <template>
     <div class="homepage bg-slate-800 h-screen flex justify-center">
-        <div class="w-1/3 flex justify-center">
+        <div class="w-1/3 flex">
             <div class="w-full flex flex-col justify-start items-center p-10" v-show="worldPreview">
                 <h3 class="text-3xl  font-bold text-slate-200 text-center">World preview</h3>
                 <img :src="worldPreview" style="object-fit: contain;" class="self-start"/>
             </div>
         </div>
-        <div class="w-1/3 flex flex-col items-center gap-8">
-            <h1 class="text-5xl py-10 font-bold text-slate-200 text-center">Create your adventure</h1>
+        <div class="w-1/3 flex flex-col gap-8">
+            <div class="flex items-center justify-start">
+                <router-link to="/" class="link">
+                    <font-awesome-icon icon="fa-solid fa-angle-left" class=" text-sky-500 hover:text-sky-700  mr-auto" size="2xl" />
+                </router-link>
+                <h1 class="mx-auto text-5xl py-10 font-bold text-slate-200 text-center">Create your adventure</h1>
+            </div>
             <div class="w-full">
                 <input type="text" id="name" v-model="adventure.name" class="user-input" placeholder="Give your adventure a name">
                 <span v-if="errors.name" class="error">{{ errors.name }}</span>
             </div>
             <div class="w-full">
-                <label for="description" class="text-3xl font-bold text-slate-200">Describe the world</label>
+                <label for="description" class="text-3xl font-bold text-slate-200">World</label>
                 <Popper placement="right" class="dark">
                     <template #content>
                       <div>Give a short description of your world</div>
                     </template>
-                    <textarea id="description" v-model="adventure.worldDescription" @input="generateWorldPreview" class="user-input"></textarea>
+                    <textarea id="description" v-model="adventure.worldDescription" @input="generateWorldPreview" class="user-input"
+                    placeholder="A world where an alien invasion took place. An alien race attacked the Earth. "></textarea>
                 </Popper>
                 <span v-if="errors.description" class="error">{{ errors.description }}</span>
             </div>
-            
             <div class="w-full">
-                <label for="character_description" class="text-3xl font-bold text-slate-200">Describe your character</label>
+                <label for="character_description" class="text-3xl font-bold text-slate-200">Character</label>
                 <Popper placement="right" class="dark">
                     <template #content>
                       <div>Describe your character - who are you? What are you up to? What is your story?</div>
@@ -34,16 +39,16 @@
                 <span v-if="errors.character_description" class="error">{{ errors.character_description }}</span>
             </div>
             <div class="w-full">
-                <label for="avatar_description" class="text-3xl font-bold text-slate-200">Describe your avatar</label>
+                <label for="avatar_description" class="text-3xl font-bold text-slate-200">Avatar</label>
                 <Popper placement="right" class="dark">
                     <template #content>
-                      <div>This is the avatar that will be shown in your character screen.</div>
+                      <div>This is the initial avatar of your character. It will change in the course of the story.</div>
                     </template>
                     <input type="text" id="avatar_description" v-model="adventure.avatarDescription" @input="generateAvatar" class="user-input">
                 </Popper>
                 <span v-if="errors.avatar_description" class="error">{{ errors.avatar_description }}</span>
             </div>
-            <div class="flex gap-3 items-center">
+            <div class="flex gap-3 items-center justify-center">
                 <button @click.prevent="submitAdventure" :disabled="isSaving" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 {{ btnCaption }}
             </button>
@@ -62,6 +67,7 @@
 
 <script>
     import axios from 'axios';
+    import router from '@/router'
     import { debounce } from 'lodash';
     import Popper from "vue3-popper";
     import ClipLoader from 'vue-spinner/src/ClipLoader.vue'
@@ -101,9 +107,9 @@
                     }
                 }
                 )
-                .then(response => {
-                    console.log(response.data);
+                .then(() => {
                     this.isSaving = false
+                    router.push('/')
                 })
                 .catch(error => {
                     if (error.response) {
@@ -125,8 +131,8 @@
                     },responseType: 'blob'
                 }, )
                     .then(response => {
-                    const blob = new Blob([response.data], { type: 'image/png' });
-                    this.avatarPreview = URL.createObjectURL(blob);
+                        const blob = new Blob([response.data], { type: 'image/png' });
+                        this.avatarPreview = URL.createObjectURL(blob);
                     })
                     .catch(error => {
                     console.log('Error:', error);
