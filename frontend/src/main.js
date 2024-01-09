@@ -2,6 +2,7 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
 import MainChat from "./components/MainChat"
+import AdventuresList from "./components/AdventuresList"
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import "./assets/style.css";
@@ -29,6 +30,7 @@ const vuetify = createVuetify({
 const app = createApp(App).use(router);
 
 app.component("main-chat", MainChat)
+app.component("adventures-list", AdventuresList)
 app.component('font-awesome-icon', FontAwesomeIcon)
 app.use(vuetify)
 app.mount("#app")

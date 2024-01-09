@@ -52,6 +52,8 @@ class History:
             description = Column(Text)
             character_description = Column(Text)
             avatar_description = Column(Text)
+    
+    
 
     def addAdventure(self, name, description, character_description, avatar_description, world_preview, avatar_preview):
         # if len(type) > 64:
@@ -95,11 +97,22 @@ class History:
                 'description': adventure.description,
                 'character_description': adventure.character_description,
                 'avatar_description': adventure.avatar_description,
+                'created': self.userAdventureExists(adventure.id)
             }
             adventures_json.append(adventure_dict)
 
         return adventures_json
 
+    class UserAdventure(Base):
+            __tablename__ = 'user_adventures'
+
+            id = Column(Integer, primary_key=True)
+            # user_id = Column(Integer)
+            adventure_id = Column(Integer)
+
+    def userAdventureExists(self, adventure_id):
+        user_adventure = self.session.query(self.UserAdventure).filter_by(adventure_id=adventure_id).first()
+        return True if user_adventure else False
 
     def close(self):
          self.session.close()
