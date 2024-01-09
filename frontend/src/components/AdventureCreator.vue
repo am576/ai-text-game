@@ -7,6 +7,7 @@
             </div>
         </div>
         <div class="w-1/3 flex flex-col gap-8">
+            <div v-if="errors.network">{{ errors.network.message }}</div>
             <div class="flex items-center justify-start">
                 <router-link to="/" class="link">
                     <font-awesome-icon icon="fa-solid fa-angle-left" class="text-sky-500 hover:text-sky-700  mr-auto" size="2xl"/>
@@ -34,7 +35,7 @@
                 <div>
                     <h3 class="text-2xl font-bold text-slate-200">Age</h3>
                     <v-btn-toggle
-                        v-model="character.age"
+                        v-model="adventure.character.age"
                         divided
                         color="purple-darken-4"
                     >
@@ -44,7 +45,7 @@
                 <div>
                     <h3 class="text-2xl font-bold text-slate-200">Gender</h3>
                     <v-btn-toggle
-                        v-model="character.gender"
+                        v-model="adventure.character.gender"
                         divided
                         color="purple-darken-4"
                     >
@@ -57,7 +58,7 @@
                         <template #content>
                         <div>Describe your character - who are you? What are you up to? What is your story?</div>
                         </template>
-                        <textarea id="charscter_description" v-model="character.description" class="user-input"></textarea>
+                        <textarea id="charscter_description" v-model="adventure.character.description" class="user-input"></textarea>
                     </Popper>
                     <span v-if="errors.character_description" class="error">{{ errors.character_description }}</span>
                     <v-btn @click="generateAvatarPreview">Create avatar</v-btn>
@@ -79,7 +80,7 @@
                 <button @click.prevent="submitAdventure" :disabled="isSaving" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 {{ btnCaption }}
             </button>
-            <clip-loader :loading="isSaving" :color="spinner.color" :size="spinner.size"></clip-loader>
+            <clip-loader :loading="isSaving" :color="'#3b82f6'" :size="'25px'"></clip-loader>
             </div>
         </div>
         <div class="w-1/3 flex justify-center"> 
@@ -90,7 +91,7 @@
                 </div>
                 <div :class="['avatar-preview',{ 'with-before': generatingAvatar }]">
                     <img :src="avatarPreview" style="object-fit: contain;" class="self-start" alt="Avatar preview" />
-                    <clip-loader :loading="generatingAvatar" :color="'#ffffff'" :size="spinner.size"></clip-loader>
+                    <clip-loader :loading="generatingAvatar" :color="'#ffffff'" :size="'50px'"></clip-loader>
                 </div>
                 
             </div>
@@ -113,20 +114,21 @@
         },
         data() {
             return {
-                adventure: {},
-                character: {
-                    age: "18-25",
-                    gender: "Male",
-                    description: ""
+                adventure: {
+                    name: "Invasion",
+                    worldDescription: "A big Russian city destroyed by alien invasion",
+                    avatarDescription: " A determined and resilient man in his late twenties or early thirties, haunted by the loss of his wife during the alien invasion, gazes intensely at the viewer with steely resolve.",
+                    character: {
+                        age: "18-25",
+                        gender: "Male",
+                        description: "You are a former programmer who survived the alien invasion. Your wife was killed in the first hours of attack. You have nothing left but revenge and survival"
+                    },
                 },
+                
                 worldPreview: '',
                 avatarPreview: '',
                 errors: {},
                 isSaving : false,
-                spinner: {
-                    size: '50px',
-                    color: '#3b82f6',
-                },
                 genders: ['Male', 'Female'],
                 ages: ['18-25', '25-35', '35-45', '45-55', '55-60', '60-70', '70+'],
                 current_message: '',
@@ -139,9 +141,8 @@
                 this.isSaving = true
                 this.errors = {};
                 const formData = new FormData()
-                for (const [key, value] of Object.entries(this.adventure)) {
-                   formData.append(key, value);
-                }
+                formData.append('adventure', JSON.stringify(this.adventure));
+                
                 const url = process.env.VUE_APP_BACKEND_URL;
                 axios.post(`${url}/save_adventure`, formData,
                 {
@@ -155,6 +156,9 @@
                     router.push('/')
                 })
                 .catch(error => {
+                    if (error.stack) {
+                        this.errors.network = {message: "Something went wrong. Please try again later."}
+                    }    
                     if (error.response) {
                         this.errors = error.response.data;
                     } else if (error.request) {
@@ -162,7 +166,10 @@
                     } else {
                         console.log(error.message);
                     }
-                });
+                })
+                .finally(() => {
+                    this.isSaving = false
+                })
             },
             generateAvatar() {
                 this.generatingAvatar = true;
@@ -183,7 +190,7 @@
                     });
             },
             async generateAvatarPrompt() {
-                const prompt = `Here is a description of a character:\n"${this.character.description}. ${this.character.gender}. ${this.character.age} years old"\n
+                const prompt = `Here is a description of a adventure.character:\n"${this.adventure.character.description}. ${this.adventure.character.gender}. ${this.adventure.character.age} years old"\n
                     Describe it with 1-2 sentences, how you would it to an artist to paint a picture of this character. It must be a close up portrait. Don't mention character's profession.`
                 const body = {
                     model: "dolphin",
@@ -250,7 +257,7 @@
                 return this.isSaving ? "Saving..." : "Create adventure";
             },
             avatarPrePrompt() {
-                return "3d sci-fi concept art, portrait of a character. " + this.character.gender + " " + this.character.age + " years old. \n"
+                return "3d sci-fi concept art, portrait of a adventure.character. " + this.adventure.character.gender + " " + this.character.age + " years old. \n"
             },
         },
         created() {

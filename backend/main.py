@@ -2,6 +2,7 @@ from flask import Flask, Response, request, send_file, jsonify
 from flask_cors import CORS, cross_origin
 from db.history import History
 from comfy.generator import Generator
+import json
 
 app = Flask(__name__)
 CORS(app, origins='*')
@@ -51,13 +52,20 @@ def avatar_preview():
 @app.route('/save_adventure', methods=['POST'])
 def save_adventure():
     # type = request.json.get('type')
-    name = request.json.get('name')
-    description = request.json.get('worldDescription')
-    character_description = request.json.get('characterDescription')
-    avatar_description = request.json.get('avatarDescription')
+    adventure = json.loads(request.json.get('adventure'))
+    character = adventure['character']
+    name = adventure.get('name')
+    description = adventure.get('worldDescription')
+    character_description = character.get('description')
+    avatar_description = adventure.get('avatarDescription')
     preview = generator.world_preview_path
     avatar = generator.avatar_preview_path
-    history.addAdventure(name, description, preview, character_description, avatar_description, avatar)
+    if not preview:
+        preview = "../frontend/src/assets/placeholder_512.png"
+    if not avatar:
+        avatar = "../frontend/src/assets/placeholder_512.png"
+    
+    history.addAdventure(name, description, character_description, avatar_description, preview, avatar)
     
     return "Working"
 
