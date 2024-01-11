@@ -73,7 +73,17 @@ class History:
         self.saveAdventurePreviews(new_adventure.id, world_preview, avatar_preview)
         self.session.close()
         
-        
+    def saveAdventure(self, adventure_id, name, description, character_description, avatar_description, world_preview, avatar_preview):
+        adventure = self.session.query(self.Adventure).get(adventure_id)
+        adventure.name = name
+        adventure.description = description
+        adventure.character_description = character_description
+        adventure.avatar_description = avatar_description
+        self.saveAdventurePreviews(adventure_id, world_preview, avatar_preview)
+        self.session.commit()
+        self.session.close()
+
+
     def saveAdventurePreviews(self, adventure_id, world_preview, avatar_preview):
         adventure_path = f'../frontend/src/assets/adventures/{adventure_id}'
         os.makedirs(adventure_path, exist_ok=True)
@@ -81,8 +91,11 @@ class History:
         preview_destination = os.path.join(adventure_path, 'preview.png')
         avatar_destination = os.path.join(adventure_path, 'avatar.png')
 
-        shutil.copy(world_preview, preview_destination)
-        shutil.copy(avatar_preview, avatar_destination)
+        if world_preview != preview_destination:
+            shutil.copy(world_preview, preview_destination)
+
+        if avatar_preview != avatar_destination:
+            shutil.copy(avatar_preview, avatar_destination)
 
         
 
@@ -102,6 +115,12 @@ class History:
             adventures_json.append(adventure_dict)
 
         return adventures_json
+    
+    def getAdventure(self, adventure_id):
+         adventure = self.session.query(self.Adventure).get(adventure_id)
+         self.session.close()
+
+         return adventure
 
     class UserAdventure(Base):
             __tablename__ = 'user_adventures'

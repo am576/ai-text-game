@@ -1,9 +1,16 @@
 <template>
    <div class="adventures-list flex justify-between w-2/3 flex-wrap -mx-2">
-		<div class="adventure w-1/3 relative flex flex-col px-4 mb-8" v-for="adventure in adventures" :key="adventure.id">
+		<div class="adventure w-1/3 relative flex flex-col px-4 mb-8" 
+		v-for="(adventure, index) in adventures" :key="index"
+		@mouseover="showControls(index)" @mouseout="hideControls(index)">
+			<router-link :to="'/adventure/edit/' + adventure.id" class="link">
+				<div v-show="adventure.isHovered" class="edit-btn rounded before:blur-lg absolute top-5 right-10 p-1">
+					<font-awesome-icon icon="fa-solid fa-pen-to-square" class=" fa-xl"/>
+				</div>
+			</router-link>
 			<h3 class="text-3xl text-center absolute top-5 w-full"></h3>
 			<img :src="previewUrl(adventure.id)" style="object-fit: contain;" class="self-start">
-            <div>
+            <div v-show="adventure.isHovered">
                 <div class="flex -mt-12">
                     <div :class="['flex justify-center',{'w-1/2': adventure.created, 'w-full': !adventure.created}]">
                         <v-btn size="large" color="orange-darken-3">New</v-btn>
@@ -43,6 +50,13 @@
 			previewUrl(adventure_id) {
 				return require(`../assets/adventures/${adventure_id}/preview.png`);
 			},
+			showControls(index) {
+				this.adventures[index].isHovered = true
+			},
+			hideControls(index) {
+				this.adventures[index].isHovered = false
+			},
+
 		},
 		created() {
 			this.getAdventures()
@@ -86,5 +100,9 @@
   height: 100%;
   backdrop-filter: blur(30px);
   background-color: rgba(0, 0, 0, 0.54);
+}
+.edit-btn {
+	background-color: rgba(83, 83, 83, 0.54);
+	
 }
 </style>

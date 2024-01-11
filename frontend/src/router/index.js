@@ -10,6 +10,11 @@ const routes = [
     component: MainChat
   },
   {
+    path: "/adventure/edit/:id",
+    name: "adventure_edit",
+    component: AdventureCreator
+  },
+  {
     path: "/create_adventure",
     name: "create_adventure",
     component: AdventureCreator

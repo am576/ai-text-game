@@ -8,10 +8,11 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import "./assets/style.css";
 import '@fortawesome/fontawesome-svg-core/styles.css'
 
-import { faAngleLeft, faRotateRight } from '@fortawesome/free-solid-svg-icons'
+import { faAngleLeft, faRotateRight, faPenToSquare } from '@fortawesome/free-solid-svg-icons'
 
 library.add(faAngleLeft)
 library.add(faRotateRight)
+library.add(faPenToSquare)
 
 
 import 'vuetify/styles'

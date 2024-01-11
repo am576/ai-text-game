@@ -1,5 +1,6 @@
 <template>
     <div class="homepage bg-slate-800 h-screen flex justify-center">
+        
         <div class="w-1/3 flex">
             <div class="w-full flex flex-col justify-start items-center p-10" v-show="worldPreview">
                 <h3 class="text-3xl  font-bold text-slate-200 text-center">World preview</h3>
@@ -12,7 +13,7 @@
                 <router-link to="/" class="link">
                     <font-awesome-icon icon="fa-solid fa-angle-left" class="text-sky-500 hover:text-sky-700  mr-auto" size="2xl"/>
                 </router-link>
-                <h1 class="mx-auto text-5xl py-10 font-bold text-slate-200 text-center">Create your adventure</h1>
+                <h1 class="mx-auto text-5xl py-10 font-bold text-slate-200 text-center">{{ pageTitle }} your adventure</h1>
             </div>
             <div class="w-full">
                 <input type="text" id="name" v-model="adventure.name" class="user-input" placeholder="Give your adventure a name">
@@ -65,7 +66,7 @@
                 </div>
                 
             </div>
-            <div class="w-full" v-show="adventure.avatarDescription">
+            <div class="w-full" v-show="adventure.avatarDescription && !generatingAvatarPrompt">
                 <label for="avatar_description" class="text-3xl font-bold text-slate-200">Avatar</label>
                 <Popper placement="right" class="dark">
                     <template #content>
@@ -76,7 +77,7 @@
                 
                 <span v-if="errors.avatar_description" class="error">{{ errors.avatar_description }}</span>
             </div>
-            <div class="flex gap-3 items-center justify-center">
+            <div v-show="!generatingAvatar" class="flex gap-3 items-center justify-center">
                 <button @click.prevent="submitAdventure" :disabled="isSaving" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 {{ btnCaption }}
             </button>
@@ -114,6 +115,7 @@
         },
         data() {
             return {
+                adventure_id: '',
                 adventure: {
                     name: "Invasion",
                     worldDescription: "A big Russian city destroyed by alien invasion",
@@ -133,6 +135,7 @@
                 ages: ['18-25', '25-35', '35-45', '45-55', '55-60', '60-70', '70+'],
                 current_message: '',
                 generatingAvatar: false,
+                generatingAvatarPrompt: false,
                 defaultAvatar: ''
             };
         },
@@ -141,6 +144,9 @@
                 this.isSaving = true
                 this.errors = {};
                 const formData = new FormData()
+                if(this.adventure_id) {
+                    formData.append('adventure_id', this.adventure_id)
+                }
                 formData.append('adventure', JSON.stringify(this.adventure));
                 
                 const url = process.env.VUE_APP_BACKEND_URL;
@@ -152,8 +158,9 @@
                 }
                 )
                 .then(() => {
-                    this.isSaving = false
+                    
                     router.push('/')
+                    this.isSaving = false
                 })
                 .catch(error => {
                     if (error.stack) {
@@ -171,7 +178,7 @@
                     this.isSaving = false
                 })
             },
-            generateAvatar() {
+            generateAvatar: debounce(function() {
                 this.generatingAvatar = true;
                 const url = process.env.VUE_APP_BACKEND_URL;
                 axios.post(`${url}/avatar_preview`, {prompt: this.adventure.avatarDescription},
@@ -183,13 +190,17 @@
                     .then(response => {
                         const blob = new Blob([response.data], { type: 'image/png' });
                         this.avatarPreview = URL.createObjectURL(blob);
-                        this.generatingAvatar = false
+                        this.generatingAvatarPrompt = false
                     })
                     .catch(error => {
                     console.log('Error:', error);
-                    });
-            },
+                    })
+                    .finally(() => {
+                    this.generatingAvatar = false
+                    })
+            }, 500),
             async generateAvatarPrompt() {
+                this.generatingAvatarPrompt = true
                 const prompt = `Here is a description of a adventure.character:\n"${this.adventure.character.description}. ${this.adventure.character.gender}. ${this.adventure.character.age} years old"\n
                     Describe it with 1-2 sentences, how you would it to an artist to paint a picture of this character. It must be a close up portrait. Don't mention character's profession.`
                 const body = {
@@ -220,6 +231,7 @@
                     }
                 }
                 this.adventure.avatarDescription = avatar_prompt
+                this.generatingAvatarPrompt = false
             },
             async generateAvatarPreview() {
                 this.generatingAvatar = true
@@ -244,6 +256,25 @@
                     console.log('Error:', error);
                     });
             }, 500),
+            loadAdventure(id) {
+                axios.get(`${process.env.VUE_APP_BACKEND_URL}/get_adventure?id=${id}`)
+                .then(response => {
+                    const adventure = response.data
+                    this.adventure.name = adventure.name
+                    this.adventure.worldDescription = adventure.description
+                    this.adventure.character.description = adventure.character_description
+                    this.adventure.avatarDescription = adventure.avatar_description
+                    this.worldPreview = this.preview(id)
+                    this.avatarPreview = this.avatar(id)
+                })
+            },
+            preview(adventure_id) {
+				return require(`../assets/adventures/${adventure_id}/preview.png`);
+			},
+            avatar(adventure_id) {
+				return require(`../assets/adventures/${adventure_id}/avatar.png`);
+			},
+            
         },
         computed: {
             previewUrl() {
@@ -254,14 +285,36 @@
                 }
             },
             btnCaption() {
-                return this.isSaving ? "Saving..." : "Create adventure";
+                if (this.isSaving) {
+                    return "Saving..."
+                }
+                else {
+                    if (this.$route.params.id) {
+                        return "Save adventure"
+                    }
+                    else {
+                        return "Create adventure"
+                    }
+                }
             },
             avatarPrePrompt() {
                 return "3d sci-fi concept art, portrait of a adventure.character. " + this.adventure.character.gender + " " + this.character.age + " years old. \n"
             },
+            pageTitle() {
+                if (this.$route.params.id) {
+                    return "Change"
+                }
+                else {
+                    return "Create"
+                }
+            }
         },
         created() {
             this.defaultAvatar = new URL('/src/assets/default_avatar.png', import.meta.url).href
+            if (this.$route.params.id) {
+                this.adventure_id = this.$route.params.id
+                this.loadAdventure(this.$route.params.id)
+            }
         }
     }
     

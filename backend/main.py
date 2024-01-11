@@ -60,18 +60,43 @@ def save_adventure():
     avatar_description = adventure.get('avatarDescription')
     preview = generator.world_preview_path
     avatar = generator.avatar_preview_path
-    if not preview:
-        preview = "../frontend/src/assets/placeholder_512.png"
-    if not avatar:
-        avatar = "../frontend/src/assets/placeholder_512.png"
     
-    history.addAdventure(name, description, character_description, avatar_description, preview, avatar)
     
+    if 'adventure_id' in request.get_json():
+        adventure_id = request.json.get('adventure_id')
+        if not preview:
+            preview = f"../frontend/src/assets/adventures/{adventure_id}/preview.png"
+        if not avatar:
+            avatar = f"../frontend/src/assets/adventures/{adventure_id}/avatar.png"
+        history.saveAdventure(adventure_id, name, description, character_description, avatar_description, preview, avatar)
+    else:
+        if not preview:
+            preview = "../frontend/src/assets/placeholder_512.png"
+        if not avatar:
+            avatar = "../frontend/src/assets/placeholder_512.png"
+        history.addAdventure(name, description, character_description, avatar_description, preview, avatar)
+
     return "Working"
 
 @app.route('/get_adventures', methods=['GET'])
 def get_adventures():
     return jsonify(history.getAdventures())
+
+@app.route('/get_adventure', methods=['GET'])
+def get_adventure():
+    adventure_id = request.args.get('id')
+    adventure = history.getAdventure(adventure_id)
+    if adventure:
+        adventure_dict = {
+            'id': adventure.id,
+            'name': adventure.name,
+            'description': adventure.description,
+            'character_description': adventure.character_description,
+            'avatar_description': adventure.avatar_description
+        }
+        return jsonify(adventure_dict)
+    else:
+        return jsonify({'error': 'Adventure not found'})
 
 if __name__ == "__main__":
     app.run(debug = True)

@@ -1,3 +1,5 @@
 frontend/node_modules
 frontend/package-lock.json
 backend/comfyui/
+frontend/src/assets/adventures
+backend/db/history.db
