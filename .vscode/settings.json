@@ -1,4 +1,5 @@
 {
     "css.lint.unknownAtRules": "ignore",
+    "css.lint.valid-v-slot": "ignore",
     "scss.lint.unknownAtRules": "ignore"
 }
