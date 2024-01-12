@@ -5,7 +5,7 @@
                 <span class="text-xl">{{name}}</span>
                 <v-icon  
                     size="x-large"
-                    color="green-lighten-2"
+                    color="white"
                     icon="mdi-plus" 
                     class="cursor-pointer"
                     @click="addElement"
@@ -13,20 +13,18 @@
                 </v-icon>
             </v-card-text>
         </v-card>
-        <world-element-card v-for="(element, index) in elements" :key="index">{{ element.text }}</world-element-card>
+        <world-element-card v-for="(element, index) in elements" :key="index" @remove-element="removeElement(index)">{{ element.text }}</world-element-card>
         <div class="flex w-full justify-center" v-if="elements.length > 0">
             <v-card class="w-full text-center cursor-pointer" @click="addElement">
                 <v-icon 
                 size="x-large"
-                color="green-lighten-2"
+                color="white"
                 icon="mdi-plus" 
-            >
+                >
                 </v-icon>
             </v-card>
-            
         </div>
     </div>
-      
 </template>
 
 <script>
@@ -36,7 +34,7 @@
             name: {
                 type: String,
                 required: true
-        }
+            }
         },
         data() {
             return {
@@ -46,6 +44,10 @@
         methods: {
             addElement() {
                 this.elements.push({ text: "" })
+            },
+            removeElement(index) {
+                console.log(9);
+                this.elements.splice(index, 1)
             }
         }
     }
