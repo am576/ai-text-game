@@ -1,9 +1,9 @@
 /* eslint-disable */
 <template>
     <div class="homepage bg-slate-800 min-h-full justify-center overflow-y-auto">
-        <v-stepper non-linear bg-color="blue-grey-darken-4">
+        <v-stepper non-linear bg-color="blue-grey-darken-4" model-value="2">
             <v-stepper-header>
-                <v-stepper-item editable value="1">
+                <v-stepper-item editable value="1" complete>
                     World & Character
                 </v-stepper-item>
 
@@ -19,7 +19,7 @@
 
                 <v-stepper-item value="4" editable>Something</v-stepper-item>
             </v-stepper-header>
-            <v-stepper-window>
+            <v-stepper-window class="pb-10">
                 <v-stepper-window-item value="1">
                     <div class="w-1/3 flex">
                             <div class="w-full flex flex-col justify-start items-center p-10" v-show="worldPreview">
@@ -118,7 +118,20 @@
                             </div>
                         </div>
                 </v-stepper-window-item>
-                <v-stepper-window-item value="2">123</v-stepper-window-item>
+                <v-stepper-window-item value="2">
+                    <div class="flex w-full justify-between gap-4">
+                        <div class="w-1/3">
+                            <world-elements :name="'Places'"></world-elements>
+                        </div>
+                        <div class="w-1/3">
+                            <world-elements :name="'Characters'"></world-elements>
+                        </div>
+                        <div class="w-1/3">
+                            <world-elements :name="'Events'"></world-elements>
+                        </div>
+                    </div>
+                    
+                </v-stepper-window-item>
                 <v-stepper-window-item value="3">123</v-stepper-window-item>
                 <v-stepper-window-item value="4">123</v-stepper-window-item>
             </v-stepper-window>
