@@ -5,7 +5,7 @@ import AdventureCreator from "../components/AdventureCreator"
 
 const routes = [
   {
-    path: "/adventure",
+    path: "/adventure/:id",
     name: "adventure",
     component: MainChat
   },

@@ -3,25 +3,25 @@
 		<div class="adventure w-1/3 relative flex flex-col px-4 mb-8" 
 		v-for="(adventure, index) in adventures" :key="index"
 		@mouseover="showControls(index)" @mouseout="hideControls(index)">
-			<router-link :to="'/adventure/edit/' + adventure.id" class="link">
+			<router-link :to="'/adventure/edit/' + adventure._id" class="link">
 				<div v-show="adventure.isHovered" class="edit-btn rounded before:blur-lg absolute top-5 right-10 p-1">
 					<font-awesome-icon icon="fa-solid fa-pen-to-square" class=" fa-xl"/>
 				</div>
 			</router-link>
 			<h3 class="text-3xl text-center absolute top-5 w-full"></h3>
-			<img :src="previewUrl(adventure.id)" style="object-fit: contain;" class="self-start">
+			<img :src="previewUrl(adventure._id)" style="object-fit: contain;" class="self-start">
             <div v-show="adventure.isHovered">
                 <div class="flex -mt-12">
-                    <div :class="['flex justify-center',{'w-1/2': adventure.created, 'w-full': !adventure.created}]">
-                        <v-btn size="large" color="orange-darken-3">New</v-btn>
+                    <div :class="['flex justify-center',{'w-1/2': adventure.created, 'w-full': adventure.created === 'false'}]">
+						<v-btn size="large" color="orange-darken-3" @click="startAdventure(adventure._id)">New</v-btn>
                     </div>
-                    <div class="w-1/2" v-if="adventure.created">
-                        <v-btn size="large" color="orange-darken-3" >Continue</v-btn>
+                    <div class="w-1/2" v-if="adventure.created === 'true'">
+                        <v-btn size="large" color="orange-darken-3" @click="loadAdventure(adventure._id)">Continue</v-btn>
                     </div>
                 </div>
             </div>
             
-			<div class="adventure-info w-full flex flex-col gap-2 relative" :style="`background-image: url(${previewUrl(adventure.id)})`">
+			<div class="adventure-info w-full flex flex-col gap-2 relative" :style="`background-image: url(${previewUrl(adventure._id)})`">
 				<span class="adventure-name merriweather">{{ adventure.name }}</span>
 				<span class="adventure-description roboto">{{ adventure.description }}</span>
 			</div>
@@ -56,6 +56,19 @@
 			hideControls(index) {
 				this.adventures[index].isHovered = false
 			},
+			startAdventure(adventure_id) {
+				axios.post(`${process.env.VUE_APP_BACKEND_URL}/start_game`, {adventure_id: adventure_id})
+				.then(() => {
+					this.$router.push({ name: 'adventure', params: { id: adventure_id } })	
+				})
+			},
+			loadAdventure(adventure_id) {
+				axios.post(`${process.env.VUE_APP_BACKEND_URL}/load_game`, {adventure_id: adventure_id})
+				.then(() => {
+					this.$router.push({ name: 'adventure', params: { id: adventure_id } })	
+				})
+			}
+
 
 		},
 		created() {

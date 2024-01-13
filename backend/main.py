@@ -1,37 +1,59 @@
 from flask import Flask, Response, request, send_file, jsonify
 from flask_cors import CORS, cross_origin
-from db.history import History
 from comfy.generator import Generator
 import json
+from db.connection import MongoDBConnection
+from db.models import Adventure
+from game.game import Game
 
 app = Flask(__name__)
 CORS(app, origins='*')
 app.config.from_object(__name__)
-history = History()
-generator = Generator()
-
 CORS(app, resources={r"/*":{'origins':"http://localhost:8080"}})
+
+generator = Generator()
+connection = MongoDBConnection()
+game = None
 
 @app.route('/', methods=['GET'])
 def index():
     return "The best ai driven text game in the universe"
+game = None
+@app.route('/start_game', methods=['POST'])
+def start_game():
+    global game 
+    adventure_id = request.json.get('adventure_id')
+    game = Game(adventure_id)
+
+    return "Ok"
+
+@app.route('/load_game', methods=['POST'])
+def load_game():
+    global game 
+    adventure_id = request.json.get('adventure_id')
+    game = Game.load(adventure_id)
+
+    return "Ok"
 
 @app.route('/save_prompt', methods=['GET'])
 def save_prompt():
+    global game 
     prompt = request.args.get('prompt')
-    print('Asking ai ', prompt)
-    history.addToHistory("user", prompt)
+    game.addToHistory("user", prompt)
     return "Working"
     
 @app.route('/save_response', methods=['POST'])
 def save_response():
+    global game 
     response = request.json.get('response')
-    history.addToHistory("assistant", response)
+    game.addToHistory("assistant", response)
     return "Working"
 
 @app.route('/load_history', methods=['GET'])
 def load_history():
-    return history.getHistory()
+    global game 
+    return game.getHistory()
+
 
 @app.route('/world_preview', methods=['POST'])
 def world_preview():
@@ -51,7 +73,6 @@ def avatar_preview():
 
 @app.route('/save_adventure', methods=['POST'])
 def save_adventure():
-    # type = request.json.get('type')
     adventure = json.loads(request.json.get('adventure'))
     character = adventure['character']
     name = adventure.get('name')
@@ -61,43 +82,31 @@ def save_adventure():
     preview = generator.world_preview_path
     avatar = generator.avatar_preview_path
     
-    
     if 'adventure_id' in request.get_json():
         adventure_id = request.json.get('adventure_id')
         if not preview:
             preview = f"../frontend/src/assets/adventures/{adventure_id}/preview.png"
         if not avatar:
             avatar = f"../frontend/src/assets/adventures/{adventure_id}/avatar.png"
-        history.saveAdventure(adventure_id, name, description, character_description, avatar_description, preview, avatar)
+        Adventure.save(adventure_id, name, description, character_description, avatar_description, preview, avatar)
     else:
         if not preview:
             preview = "../frontend/src/assets/placeholder_512.png"
         if not avatar:
             avatar = "../frontend/src/assets/placeholder_512.png"
-        history.addAdventure(name, description, character_description, avatar_description, preview, avatar)
+        Adventure.create(name, description, character_description, avatar_description, preview, avatar)
 
     return "Working"
 
 @app.route('/get_adventures', methods=['GET'])
 def get_adventures():
-    return jsonify(history.getAdventures())
+    return Adventure.getAll()
 
 @app.route('/get_adventure', methods=['GET'])
 def get_adventure():
     adventure_id = request.args.get('id')
-    adventure = history.getAdventure(adventure_id)
-    if adventure:
-        adventure_dict = {
-            'id': adventure.id,
-            'name': adventure.name,
-            'description': adventure.description,
-            'character_description': adventure.character_description,
-            'avatar_description': adventure.avatar_description
-        }
-        return jsonify(adventure_dict)
-    else:
-        return jsonify({'error': 'Adventure not found'})
+
+    return Adventure.get(adventure_id)
 
 if __name__ == "__main__":
     app.run(debug = True)
-    
