@@ -13,7 +13,13 @@
                 </v-icon>
             </v-card-text>
         </v-card>
-        <world-element-card v-for="(element, index) in elements" :key="index" @remove-element="removeElement(index)">{{ element.text }}</world-element-card>
+        <world-element-card v-for="(element, index) in elements" 
+            :key="index" 
+            :element="element"
+            @updateElement="(field, value) => {updateElement(index, field, value)}"
+            @remove-element="removeElement(index)" 
+        >
+        </world-element-card>
         <div class="flex w-full justify-center" v-if="elements.length > 0">
             <v-card class="w-full text-center cursor-pointer" @click="addElement">
                 <v-icon 
@@ -28,27 +34,38 @@
 </template>
 
 <script>
+    import WorldElementCard from './WorldElementCard.vue';
     export default {
         name: "WorldElements",
+        components: {
+            WorldElementCard
+        },
         props: {
             name: {
                 type: String,
                 required: true
+            },
+            elements: {
+                type: Array,
+                required: true,
+                default: () => []
             }
         },
         data() {
             return {
-                elements: []
             }
         },
         methods: {
             addElement() {
-                this.elements.push({ text: "" })
+                const newElement = { name: '', description: '' };
+                this.$emit('addElement', newElement);
             },
             removeElement(index) {
-                console.log(9);
-                this.elements.splice(index, 1)
-            }
+                this.$emit('removeElement', index);
+            },
+            updateElement(index, field, value) {
+                this.$emit('updateElement', index, field, value);
+            },
         }
     }
 </script>

@@ -75,6 +75,8 @@ def avatar_preview():
 def save_adventure():
     adventure = json.loads(request.json.get('adventure'))
     character = adventure['character']
+    scenario = adventure.get('scenario', None)
+    scenario = adventure['scenario']
     name = adventure.get('name')
     description = adventure.get('worldDescription')
     character_description = character.get('description')
@@ -88,13 +90,13 @@ def save_adventure():
             preview = f"../frontend/src/assets/adventures/{adventure_id}/preview.png"
         if not avatar:
             avatar = f"../frontend/src/assets/adventures/{adventure_id}/avatar.png"
-        Adventure.save(adventure_id, name, description, character_description, avatar_description, preview, avatar)
+        Adventure.save(adventure_id, name, description,scenario, character_description, avatar_description, preview, avatar)
     else:
         if not preview:
             preview = "../frontend/src/assets/placeholder_512.png"
         if not avatar:
             avatar = "../frontend/src/assets/placeholder_512.png"
-        Adventure.create(name, description, character_description, avatar_description, preview, avatar)
+        Adventure.create(name, description, scenario, character_description, avatar_description, preview, avatar)
 
     return "Working"
 

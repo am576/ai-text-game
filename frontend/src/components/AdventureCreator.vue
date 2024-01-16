@@ -18,7 +18,7 @@
 
                 <v-divider></v-divider>
 
-                <v-stepper-item value="4" editable>Something</v-stepper-item>
+                <v-stepper-item value="4" editable>Preview</v-stepper-item>
             
         </v-stepper-header>
 
@@ -100,12 +100,7 @@
                         
                         <span v-if="errors.avatar_description" class="error">{{ errors.avatar_description }}</span>
                     </div>
-                    <div v-show="!generatingAvatar" class="flex gap-3 items-center justify-center">
-                        <button @click.prevent="submitAdventure" :disabled="isSaving" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                        {{ btnCaption }}
-                    </button>
-                    <clip-loader :loading="isSaving" :color="'#3b82f6'" :size="'25px'"></clip-loader>
-                    </div>
+                    
                 </div>
                 <div class="w-1/3 flex justify-center"> 
                     <div class="w-full flex flex-col justify-start items-center p-10" v-show="avatarPreview">
@@ -123,19 +118,72 @@
             </v-stepper-window-item>
             <v-stepper-window-item value="2">
                 <div class="flex w-full justify-between gap-4">
-                        <div class="w-1/3">
-                            <world-elements :name="'Places'"></world-elements>
-                        </div>
-                        <div class="w-1/3">
-                            <world-elements :name="'Characters'"></world-elements>
-                        </div>
-                        <div class="w-1/3">
-                            <world-elements :name="'Events'"></world-elements>
-                        </div>
+                    <div class="w-1/4" v-for="(world_element, index) in worldElements" :key="index">
+                        <world-elements 
+                            :name="ucFirst(world_element)" 
+                            :elements="adventure.scenario.world[world_element]" 
+                            @addElement="addWorldElement(world_element)" 
+                            @removeElement="removeWorldElement(world_element, $event)"
+                            @updateElement="(i, field, value) => {updateWorldElement(world_element, i, field, value)}"
+                        >
+                        </world-elements>
+                    </div>
+                </div>
+            </v-stepper-window-item>
+            <v-stepper-window-item value="3">
+                <div class="w-full flex gap-4">
+                <div class="w-1/3">
+                    <v-card>
+                        <v-card-text>
+                            <v-textarea 
+                                label="Opening"
+                                spellcheck="false"
+                                variant="outlined" 
+                                hint="How does your story begin?"
+                                cols="30" rows="10"
+                            >
+                        </v-textarea>
+                        </v-card-text>
+                    </v-card>
+                </div>
+                <div class="w-1/3">
+                    <v-card>
+                        <v-card-text>
+                            <v-textarea 
+                                label="Plot simple"
+                                spellcheck="false"
+                                variant="outlined" 
+                                hint="How does your story begin?"
+                                cols="30" rows="10"
+                            >
+                        </v-textarea>
+                        </v-card-text>
+                    </v-card>
+                </div>
+                <div class="w-1/3">
+                    <!-- <v-card>
+                        <v-card-text>
+                            <v-textarea 
+                                label="Plot full"
+                                spellcheck="false"
+                                variant="outlined" 
+                                hint="How does your story begin?"
+                                cols="30" rows="5"
+                            >
+                        </v-textarea>
+                        </v-card-text>
+                    </v-card> -->
+                </div>
+                </div>
+            </v-stepper-window-item>
+            <v-stepper-window-item value="4">
+                <div v-show="!generatingAvatar" class="flex gap-3 items-center justify-center">
+                        <button @click.prevent="submitAdventure" :disabled="isSaving" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        {{ btnCaption }}
+                    </button>
+                    <clip-loader :loading="isSaving" :color="'#3b82f6'" :size="'25px'"></clip-loader>
                     </div>
             </v-stepper-window-item>
-            <v-stepper-window-item value="3">3</v-stepper-window-item>
-            <v-stepper-window-item value="4">4</v-stepper-window-item>
         </v-stepper-window>
 
         <v-stepper-actions
@@ -153,25 +201,38 @@
     import { debounce } from 'lodash';
     import Popper from "vue3-popper";
     import ClipLoader from 'vue-spinner/src/ClipLoader.vue'
+    import WorldElements from './adventure_creator/WorldElements.vue';
 
     export default {
         name: "AdventureCreator",
         components: {
             Popper,
-            ClipLoader
+            ClipLoader,
+            WorldElements
         },
         data() {
             return {
                 adventure_id: '',
                 adventure: {
-                    name: "Invasion",
-                    worldDescription: "A big Russian city destroyed by alien invasion",
-                    avatarDescription: " A determined and resilient man in his late twenties or early thirties, haunted by the loss of his wife during the alien invasion, gazes intensely at the viewer with steely resolve.",
+                    name: "Wheel of Time",
+                    worldDescription: "Wheel of Time",
+                    avatarDescription: "Rand al'Thor is a young man in his late teens or early twenties, with piercing blue eyes and short red hair hair that falls to his shoulders. He appears determined and resolute, hinting at a sense of purpose beyond what meets the eye.",
                     character: {
                         age: "18-25",
                         gender: "Male",
-                        description: "You are a former programmer who survived the alien invasion. Your wife was killed in the first hours of attack. You have nothing left but revenge and survival"
+                        description: " You are Rand al'Thor"
                     },
+                    scenario: {
+                        world: {
+                            places: [],
+                            characters: [],
+                            events: [],
+                            creatures: []
+                        },
+                        plot: {
+
+                        }
+                    }
                 },
                 
                 worldPreview: '',
@@ -180,6 +241,7 @@
                 isSaving : false,
                 genders: ['Male', 'Female'],
                 ages: ['18-25', '25-35', '35-45', '45-55', '55-60', '60-70', '70+'],
+                worldElements: ['places', 'characters', 'events', 'creatures'],
                 current_message: '',
                 generatingAvatar: false,
                 generatingAvatarPrompt: false,
@@ -312,6 +374,7 @@
                     this.adventure.avatarDescription = adventure.avatar_description
                     this.worldPreview = this.preview(id)
                     this.avatarPreview = this.avatar(id)
+                    this.adventure.scenario = adventure.scenario
                 })
             },
             preview(adventure_id) {
@@ -320,6 +383,19 @@
             avatar(adventure_id) {
 				return require(`../assets/adventures/${adventure_id}/avatar.png`);
 			},
+            addWorldElement(type) {
+                this.adventure.scenario.world[type].push({ name: "", description: "" });
+            },
+            removeWorldElement(type, index) {
+                this.adventure.scenario.world[type].splice(index, 1);
+            },
+            updateWorldElement(type, index, property, value) {
+                console.log(type, index, property, value)
+                this.adventure.scenario.world[type][index][property] = value;
+            },
+            ucFirst(str) {
+                return str[0].toUpperCase() + str.slice(1);
+            }
             
         },
         computed: {

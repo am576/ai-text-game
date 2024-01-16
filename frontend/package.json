@@ -53,6 +53,9 @@
         {
           "allowModifiers": true
         }
+      ],
+      "vue/no-mutating-props": [
+        "error", { "propProps": false }
       ]
     }
   },

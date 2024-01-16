@@ -27,13 +27,14 @@ class Adventure:
 
             return json.dumps(documents, cls=CustomJSONEncoder)
         
-        def create(name, description, character_description, avatar_description, world_preview, avatar_preview):
+        def create(name, description, scenario, character_description, avatar_description, world_preview, avatar_preview):
             db = MongoDBConnection().db
             collection = db["adventures"]
             adventure_params = {
                         'type': 'default',
                         'name': name,
                         'description': description,
+                        'scenario': scenario,
                         'character_description': character_description,
                         'avatar_description': avatar_description
                     }
@@ -42,7 +43,7 @@ class Adventure:
             Adventure.savePreviews(new_adventure.inserted_id, world_preview, avatar_preview)
 
         @staticmethod
-        def save(id, name, description, character_description, avatar_description, world_preview, avatar_preview):
+        def save(id, name, description, scenario, character_description, avatar_description, world_preview, avatar_preview):
             db = MongoDBConnection().db
             collection = db["adventures"]
             id = ObjectId(id)
@@ -51,7 +52,8 @@ class Adventure:
                         'name': name,
                         'description': description,
                         'character_description': character_description,
-                        'avatar_description': avatar_description
+                        'avatar_description': avatar_description,
+                        'scenario': scenario
                     }
 
             collection.update_one({"_id": id}, {"$set": adventure_params})

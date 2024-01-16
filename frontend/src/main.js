@@ -1,7 +1,7 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
-import { MainChat, AdventuresList, WorldElementCard, WorldElements  } from "./components"
+import { MainChat, AdventuresList } from "./components"
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import "./assets/style.css";
@@ -33,8 +33,6 @@ const app = createApp(App).use(router);
 
 app.component("main-chat", MainChat)
 app.component("adventures-list", AdventuresList)
-app.component("world-element-card", WorldElementCard)
-app.component("world-elements", WorldElements)
 app.component('font-awesome-icon', FontAwesomeIcon)
 app.use(vuetify)
 app.mount("#app")
